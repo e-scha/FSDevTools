@@ -22,7 +22,7 @@
 
 package com.espirit.moddev.cli;
 
-import com.google.common.base.Stopwatch;
+import org.apache.commons.lang3.time.StopWatch;
 
 import com.espirit.moddev.cli.api.CliContext;
 import com.espirit.moddev.cli.api.command.Command;

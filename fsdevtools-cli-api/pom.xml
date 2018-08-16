@@ -37,7 +37,7 @@
     <dependencies>
         <dependency>
             <groupId>de.espirit.firstspirit</groupId>
-            <artifactId>fs-access</artifactId>
+            <artifactId>fs-isolated-runtime</artifactId>
         </dependency>
     </dependencies>
     <build>
