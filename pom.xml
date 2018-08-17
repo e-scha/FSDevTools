@@ -36,6 +36,7 @@
         <module>fsdevtools-customcommand-example</module>
         <module>fsdevtools-projectservice</module>
         <module>fsdevtools-moduleservice</module>
+        <module>fsdevtools-sharedutils</module>
     </modules>
     <packaging>pom</packaging>
     <name>FirstSpirit Development Tools</name>
@@ -342,6 +343,11 @@
             <dependency>
                 <groupId>com.espirit.moddev.fsdevtools</groupId>
                 <artifactId>fsdevtools-moduleservice</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.espirit.moddev.fsdevtools</groupId>
+                <artifactId>fsdevtools-sharedutils</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

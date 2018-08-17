@@ -22,8 +22,6 @@
 
 package com.espirit.moddev.projectservice.projectdelete;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import de.espirit.firstspirit.access.AdminService;
 import de.espirit.firstspirit.access.Connection;
 import de.espirit.firstspirit.access.ServicesBroker;
@@ -78,7 +76,7 @@ public class ProjectDeleter {
         return performDeletion(project, projectStorage);
     }
 
-    @VisibleForTesting
+    //TODO: Remove      @VisibleForTesting
     ProjectStorage returnProjectStorage (Connection connection,  Project project) {
         if (connection == null || !canAccessProject(connection, project)) {
             LOGGER.info("Cannot access project.");

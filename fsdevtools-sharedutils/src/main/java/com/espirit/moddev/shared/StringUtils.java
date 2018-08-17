@@ -1,4 +1,4 @@
-package com.espirit.moddev.core;
+package com.espirit.moddev.shared;
 
 public class StringUtils {
 

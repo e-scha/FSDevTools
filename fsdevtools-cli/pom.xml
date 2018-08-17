@@ -62,6 +62,10 @@
             <artifactId>fs-isolated-runtime</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.espirit.moddev.fsdevtools</groupId>
+            <artifactId>fsdevtools-sharedutils</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>log4j</groupId>

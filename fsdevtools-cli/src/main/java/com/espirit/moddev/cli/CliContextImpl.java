@@ -26,7 +26,7 @@ import com.espirit.moddev.cli.api.CliContext;
 import com.espirit.moddev.cli.api.configuration.Config;
 import com.espirit.moddev.cli.exception.CliError;
 import com.espirit.moddev.cli.exception.CliException;
-import com.espirit.moddev.core.StringUtils;
+import com.espirit.moddev.shared.StringUtils;
 
 import de.espirit.firstspirit.access.AdminService;
 import de.espirit.firstspirit.access.Connection;
