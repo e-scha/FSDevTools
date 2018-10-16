@@ -2,7 +2,6 @@ package com.espirit.moddev.moduleinstaller;
 
 import com.espirit.moddev.shared.StringUtils;
 
-import de.espirit.common.StringUtil;
 import de.espirit.firstspirit.access.Connection;
 import de.espirit.firstspirit.access.project.Project;
 import de.espirit.firstspirit.access.store.LockException;
