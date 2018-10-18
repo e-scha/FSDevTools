@@ -3,7 +3,6 @@ package com.espirit.moddev.cli.results.logging;
 import de.espirit.firstspirit.access.store.BasicElementInfo;
 import de.espirit.firstspirit.access.store.Store;
 import de.espirit.firstspirit.store.access.BasicElementInfoImpl;
-import de.espirit.firstspirit.store.access.TagNames;
 import de.espirit.firstspirit.store.access.nexport.ElementExportInfo;
 import de.espirit.firstspirit.store.access.nexport.ExportStatus;
 
@@ -20,7 +19,8 @@ public class MockedElementExportInfo extends MockedExportInfo implements Element
     }
 
     MockedElementExportInfo(final Store.Type storeType, final String name, final ExportStatus exportStatus) {
-        this(storeType, name, TagNames.PAGE, exportStatus);
+//        TODO: CORE-XXX Use TagNames-API instead of hardcoded String
+        this(storeType, name, "PAGE", exportStatus);
     }
 
     MockedElementExportInfo(final Store.Type storeType, final String name, final String nodeTag, final ExportStatus exportStatus) {

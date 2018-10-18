@@ -6,7 +6,6 @@ import de.espirit.firstspirit.access.store.BasicElementInfo;
 import de.espirit.firstspirit.access.store.Store;
 import de.espirit.firstspirit.agency.StoreAgent;
 import de.espirit.firstspirit.store.access.BasicElementInfoImpl;
-import de.espirit.firstspirit.store.access.TagNames;
 import de.espirit.firstspirit.store.access.nexport.operations.ImportOperation;
 import de.espirit.firstspirit.transport.PropertiesTransportOptions;
 
@@ -107,13 +106,14 @@ public class MockedImportResult implements ImportOperation.Result {
     }
 
     private void fillCollection(final Set<BasicElementInfo> set, final String description) {
-        set.add(createElementInfo(4, Store.Type.TEMPLATESTORE, TagNames.PAGETEMPLATES, description));
-        set.add(createElementInfo(3, Store.Type.MEDIASTORE, TagNames.MEDIUM, description));
-        set.add(createElementInfo(1, Store.Type.PAGESTORE, TagNames.PAGE, description));
-        set.add(createElementInfo(5, Store.Type.TEMPLATESTORE, TagNames.LINKTEMPLATE, description));
-        set.add(createElementInfo(2, Store.Type.MEDIASTORE, TagNames.MEDIUM, description));
-        set.add(createElementInfo(6, Store.Type.TEMPLATESTORE, TagNames.FORMATTEMPLATE, description));
-        set.add(createElementInfo(7, Store.Type.TEMPLATESTORE, TagNames.FORMATTEMPLATE, description));
+//        TODO: CORE-XXX use TagNames-API instead of hardcoded Strings here
+        set.add(createElementInfo(4, Store.Type.TEMPLATESTORE, "PAGETEMPLATES", description));
+        set.add(createElementInfo(3, Store.Type.MEDIASTORE, "MEDIUM", description));
+        set.add(createElementInfo(1, Store.Type.PAGESTORE, "PAGE", description));
+        set.add(createElementInfo(5, Store.Type.TEMPLATESTORE, "LINKTEMPLATE", description));
+        set.add(createElementInfo(2, Store.Type.MEDIASTORE, "MEDIUM", description));
+        set.add(createElementInfo(6, Store.Type.TEMPLATESTORE, "FORMATTEMPLATE", description));
+        set.add(createElementInfo(7, Store.Type.TEMPLATESTORE, "FORMATTEMPLATE", description));
     }
 
     private BasicElementInfoImpl createElementInfo(final int id, final Store.Type storeType, final String nodeTag, final String description) {
