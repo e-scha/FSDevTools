@@ -6,7 +6,6 @@ import de.espirit.firstspirit.access.store.pagestore.Section;
 import de.espirit.firstspirit.access.store.templatestore.PageTemplate;
 import de.espirit.firstspirit.access.store.templatestore.SectionTemplate;
 import de.espirit.firstspirit.access.store.templatestore.Template;
-import de.espirit.firstspirit.store.access.TagNames;
 import de.espirit.firstspirit.store.access.nexport.*;
 import de.espirit.firstspirit.transport.PropertiesTransportOptions;
 import org.junit.Test;
@@ -83,10 +82,15 @@ public class AdvancedLoggerTest {
 
     @Test
     public void testGetStoreElementIdentifier() throws Exception {
+//        TODO: CORE-XXX: Remove strings like "TEMPLATE" and use TagNames-API
+        String templateNodeTag = "TEMPLATE";
+        String sectionNodeTag = "SECTION";
+        String pageNodeTag = "PAGE";
+
         {
             // SectionTemplate
             final String storeElementName = "testElement";
-            final MockedElementExportInfo testElement = new MockedElementExportInfo(Store.Type.TEMPLATESTORE, storeElementName, TagNames.TEMPLATE, ExportStatus.CREATED);
+            final MockedElementExportInfo testElement = new MockedElementExportInfo(Store.Type.TEMPLATESTORE, storeElementName, templateNodeTag, ExportStatus.CREATED);
             final MockedStoreAgent mockedStoreAgent = new MockedStoreAgent();
             final MockedStore store = (MockedStore) mockedStoreAgent.getStore(Store.Type.TEMPLATESTORE);
             store.addMockedStoreElement(new SectionTemplateMock(testElement.getElementInfo().getNodeId(), storeElementName));
@@ -96,7 +100,7 @@ public class AdvancedLoggerTest {
         {
             // PageTemplate
             final String storeElementName = "testElement";
-            final MockedElementExportInfo testElement = new MockedElementExportInfo(Store.Type.TEMPLATESTORE, storeElementName, TagNames.TEMPLATE, ExportStatus.CREATED);
+            final MockedElementExportInfo testElement = new MockedElementExportInfo(Store.Type.TEMPLATESTORE, storeElementName, templateNodeTag, ExportStatus.CREATED);
             final MockedStoreAgent mockedStoreAgent = new MockedStoreAgent();
             final MockedStore store = (MockedStore) mockedStoreAgent.getStore(Store.Type.TEMPLATESTORE);
             store.addMockedStoreElement(new PageTemplateMock(testElement.getElementInfo().getNodeId(), storeElementName));
@@ -106,7 +110,7 @@ public class AdvancedLoggerTest {
         {
             // Content2Section
             final String storeElementName = "testElement";
-            final MockedElementExportInfo testElement = new MockedElementExportInfo(Store.Type.TEMPLATESTORE, storeElementName, TagNames.SECTION, ExportStatus.CREATED);
+            final MockedElementExportInfo testElement = new MockedElementExportInfo(Store.Type.TEMPLATESTORE, storeElementName, sectionNodeTag, ExportStatus.CREATED);
             final MockedStoreAgent mockedStoreAgent = new MockedStoreAgent();
             final MockedStore store = (MockedStore) mockedStoreAgent.getStore(Store.Type.TEMPLATESTORE);
             store.addMockedStoreElement(new Content2SectionMock(testElement.getElementInfo().getNodeId(), storeElementName));
@@ -116,7 +120,7 @@ public class AdvancedLoggerTest {
         {
             // SectionReference
             final String storeElementName = "testElement";
-            final MockedElementExportInfo testElement = new MockedElementExportInfo(Store.Type.TEMPLATESTORE, storeElementName, TagNames.SECTION, ExportStatus.CREATED);
+            final MockedElementExportInfo testElement = new MockedElementExportInfo(Store.Type.TEMPLATESTORE, storeElementName, sectionNodeTag, ExportStatus.CREATED);
             final MockedStoreAgent mockedStoreAgent = new MockedStoreAgent();
             final MockedStore store = (MockedStore) mockedStoreAgent.getStore(Store.Type.TEMPLATESTORE);
             store.addMockedStoreElement(new SectionReferenceMock(testElement.getElementInfo().getNodeId(), storeElementName));
@@ -126,7 +130,7 @@ public class AdvancedLoggerTest {
         {
             // Section
             final String storeElementName = "testElement";
-            final MockedElementExportInfo testElement = new MockedElementExportInfo(Store.Type.TEMPLATESTORE, storeElementName, TagNames.SECTION, ExportStatus.CREATED);
+            final MockedElementExportInfo testElement = new MockedElementExportInfo(Store.Type.TEMPLATESTORE, storeElementName, sectionNodeTag, ExportStatus.CREATED);
             final MockedStoreAgent mockedStoreAgent = new MockedStoreAgent();
             final MockedStore store = (MockedStore) mockedStoreAgent.getStore(Store.Type.TEMPLATESTORE);
             store.addMockedStoreElement(new SectionMock(testElement.getElementInfo().getNodeId(), storeElementName));
@@ -136,7 +140,7 @@ public class AdvancedLoggerTest {
         {
             // Normal mode (e.g. Page)
             final String storeElementName = "testElement";
-            final MockedElementExportInfo testElement = new MockedElementExportInfo(Store.Type.PAGESTORE, storeElementName, TagNames.PAGE, ExportStatus.CREATED);
+            final MockedElementExportInfo testElement = new MockedElementExportInfo(Store.Type.PAGESTORE, storeElementName, pageNodeTag, ExportStatus.CREATED);
             final MockedStoreAgent mockedStoreAgent = new MockedStoreAgent();
             final MockedStore store = (MockedStore) mockedStoreAgent.getStore(Store.Type.PAGESTORE);
             store.addMockedStoreElement(new MockedStoreElement(testElement.getElementInfo().getNodeId(), storeElementName, storeElementName));
@@ -146,7 +150,7 @@ public class AdvancedLoggerTest {
         {
             // template is unknown in Store --> fallback to "Template"
             final String storeElementName = "testElement";
-            final MockedElementExportInfo testElement = new MockedElementExportInfo(Store.Type.TEMPLATESTORE, storeElementName, TagNames.TEMPLATE, ExportStatus.CREATED);
+            final MockedElementExportInfo testElement = new MockedElementExportInfo(Store.Type.TEMPLATESTORE, storeElementName, templateNodeTag, ExportStatus.CREATED);
             assertEquals("wrong identifier", Template.class.getSimpleName(), AdvancedLogger.getStoreElementIdentifier(new MockedStoreAgent(), testElement));
         }
     }
