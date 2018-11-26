@@ -19,7 +19,7 @@ public class MockedElementExportInfo extends MockedExportInfo implements Element
     }
 
     MockedElementExportInfo(final Store.Type storeType, final String name, final ExportStatus exportStatus) {
-//        TODO: CORE-XXX Use TagNames-API instead of hardcoded String
+//        TODO: CORE-9421 Use TagNames-API instead of hardcoded String
         this(storeType, name, "PAGE", exportStatus);
     }
 

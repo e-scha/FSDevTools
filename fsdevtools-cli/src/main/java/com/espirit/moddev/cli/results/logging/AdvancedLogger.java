@@ -411,7 +411,7 @@ public enum AdvancedLogger {
         final BasicElementInfo elementInfo = element.getElementInfo();
 
         // workaround for duplicate TagNames
-//        TODO: CORE-XXX: Remove string comparison and use TagNames-API
+//        TODO: CORE-9421: Remove string comparison and use TagNames-API
         if ("TEMPLATE".equals(elementInfo.getNodeTag()) && storeAgent != null) {
             final Store store = storeAgent.getStore(elementInfo.getStoreType());
             final IDProvider storeElement = store.getStoreElement(elementInfo.getNodeId());
@@ -542,7 +542,7 @@ public enum AdvancedLogger {
             // get the first entity
             final BasicEntityInfo firstEntity = collection.iterator().next();
 
-//                    TODO: CORE-XXX use TagNames-API instead of hardcoded String "SCHEMA"
+//                    TODO: CORE-9421 use TagNames-API instead of hardcoded String "SCHEMA"
             final String schemaNodeTag = "SCHEMA";
             if (storeAgent != null) {
                 // get the schema ... (if the store is a templateStore --> may not be the case in tests)

@@ -96,7 +96,7 @@ public class MockedExportInfo implements ExportInfo {
 
     public static Map<Store.Type, List<ElementExportInfo>> createMapWithStoreElements(final ExportStatus status, final boolean pageStore, final boolean mediaStore, final boolean siteStore, final boolean templateStore) {
 
-//        TODO: CORE-XXX use TagNames-API instead of hardcoded Strings
+//        TODO: CORE-9421 use TagNames-API instead of hardcoded Strings
         final String pageNodeTag = "PAGE";
         final String mediumNodeTag = "MEDIUM";
         final String mediaStoreNodeTag = "MEDIANODE";

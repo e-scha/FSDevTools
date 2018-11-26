@@ -1,7 +1,6 @@
 package com.espirit.moddev.moduleinstaller;
 
 import com.espirit.moddev.shared.StringUtils;
-
 import de.espirit.firstspirit.access.Connection;
 import de.espirit.firstspirit.access.project.Project;
 import de.espirit.firstspirit.access.store.LockException;
@@ -13,7 +12,6 @@ import de.espirit.firstspirit.io.FileSystem;
 import de.espirit.firstspirit.module.descriptor.ComponentDescriptor;
 import de.espirit.firstspirit.module.descriptor.ModuleDescriptor;
 import de.espirit.firstspirit.module.descriptor.ProjectAppDescriptor;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -166,7 +164,7 @@ public class ModuleInstaller {
     }
 
     private static Project safelyRetrieveProject(Connection connection, String projectName) {
-        if(Strings.isNullOrEmpty(projectName)) {
+        if(StringUtils.isNullOrEmpty(projectName)) {
             throw new IllegalArgumentException("No project given, can't get a project app configuration!");
         }
         Project project = connection.getProjectByName(projectName);

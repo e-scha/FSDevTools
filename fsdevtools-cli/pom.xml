@@ -188,10 +188,9 @@
 					<descriptor>src/main/assemblies/jar-without-firstspirit.xml</descriptor>
 					<archive>
 						<manifest>
-							<mainClass>com.espirit.moddev.cli.Cli</mainClass>
+							<mainClass>com.espirit.moddev.cli.Main</mainClass>
 						</manifest>
 						<manifestEntries>
-							<Class-Path>fs-isolated-runtime.jar</Class-Path>
 							<Implementation-Title>${project.name}</Implementation-Title>
 							<Implementation-Version>${project.version}</Implementation-Version>
 							<Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
@@ -202,7 +201,7 @@
 				</configuration>
 				<executions>
 					<execution>
-						<id>assemble-all</id>
+						<id>assemble-fatjar</id>
 						<phase>prepare-package</phase>
 						<goals>
 							<goal>single</goal>
@@ -217,35 +216,12 @@
 				<executions>
 					<execution>
 						<configuration>
-							<finalName>${project.artifactId}</finalName>
-						</configuration>
-						<id>assemble-all-fs-cli</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-					<execution>
-						<configuration>
-							<finalName>fs-cli-${project.version}</finalName>
+							<finalName>fs-cli</finalName>
 							<appendAssemblyId>false</appendAssemblyId>
-							<descriptorSourceDirectory>src/main/assemblies/distribution</descriptorSourceDirectory>
+							<descriptorSourceDirectory>src/main/assemblies/zip-distribution</descriptorSourceDirectory>
 							<tarLongFileMode>posix</tarLongFileMode>
 						</configuration>
-						<id>assemble-all</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-					<execution>
-						<configuration>
-							<finalName>fs-cli-without-access-jar</finalName>
-							<appendAssemblyId>false</appendAssemblyId>
-							<descriptorSourceDirectory>src/main/assemblies/distribution-without-access-jar</descriptorSourceDirectory>
-							<tarLongFileMode>posix</tarLongFileMode>
-						</configuration>
-						<id>assemble-all-without-access-jar</id>
+						<id>assemble-distribution</id>
 						<phase>package</phase>
 						<goals>
 							<goal>single</goal>
@@ -518,14 +494,11 @@
                                 <fileSet>
                                     <directory>${project.build.directory}</directory>
                                     <includes>
-                                        <include>*without-access-jar*.tar.gz</include>
-                                        <include>*without-access-jar*.zip</include>
+                                        <include>fs-cli.tar.gz</include>
+                                        <include>fs-cli.zip</include>
+                                        <include>fsdevtools-cli-${project.version}.jar</include>
+                                        <include>fsdevtools-cli-${project.version}-javadoc.jar</include>
                                     </includes>
-                                    <excludes>
-                                        <exclude>*.jar</exclude>
-                                        <exclude>fs-cli-${project.version}.zip</exclude>
-                                        <exclude>fs-cli-${project.version}.tar.gz</exclude>
-                                    </excludes>
                                 </fileSet>
                             </fileSets>
                         </configuration>

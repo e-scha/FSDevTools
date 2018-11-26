@@ -82,7 +82,7 @@ public class AdvancedLoggerTest {
 
     @Test
     public void testGetStoreElementIdentifier() throws Exception {
-//        TODO: CORE-XXX: Remove strings like "TEMPLATE" and use TagNames-API
+//        TODO: CORE-9421: Remove strings like "TEMPLATE" and use TagNames-API
         String templateNodeTag = "TEMPLATE";
         String sectionNodeTag = "SECTION";
         String pageNodeTag = "PAGE";

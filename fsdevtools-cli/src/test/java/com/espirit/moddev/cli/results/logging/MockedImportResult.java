@@ -106,7 +106,7 @@ public class MockedImportResult implements ImportOperation.Result {
     }
 
     private void fillCollection(final Set<BasicElementInfo> set, final String description) {
-//        TODO: CORE-XXX use TagNames-API instead of hardcoded Strings here
+//        TODO: CORE-9421 use TagNames-API instead of hardcoded Strings here
         set.add(createElementInfo(4, Store.Type.TEMPLATESTORE, "PAGETEMPLATES", description));
         set.add(createElementInfo(3, Store.Type.MEDIASTORE, "MEDIUM", description));
         set.add(createElementInfo(1, Store.Type.PAGESTORE, "PAGE", description));
