@@ -96,46 +96,36 @@ public class MockedExportInfo implements ExportInfo {
 
     public static Map<Store.Type, List<ElementExportInfo>> createMapWithStoreElements(final ExportStatus status, final boolean pageStore, final boolean mediaStore, final boolean siteStore, final boolean templateStore) {
 
-//        TODO: CORE-9421 use TagNames-API instead of hardcoded Strings
-        final String pageNodeTag = "PAGE";
-        final String mediumNodeTag = "MEDIUM";
-        final String mediaStoreNodeTag = "MEDIANODE";
-        final String pageRefNodeTag = "PAGEREF";
-        final String workFlowNodeTag = "WORKFLOW";
-        final String templateNodeTag = "TEMPLATE";
-        final String linkTemplateNodeTag = "LINKTEMPLATE";
-
-
         final Map<Store.Type, List<ElementExportInfo>> storeElements = new TreeMap<>();
         if (pageStore) {
             final Store.Type storeType = Store.Type.PAGESTORE;
             final List<ElementExportInfo> list = new ArrayList<>();
-            list.add(new MockedElementExportInfo(storeType, "first", pageNodeTag, status));
+            list.add(new MockedElementExportInfo(storeType, "first", TagNames.PAGE, status));
             storeElements.put(storeType, list);
         }
         if (mediaStore) {
             final Store.Type storeType = Store.Type.MEDIASTORE;
             final List<ElementExportInfo> list = new ArrayList<>();
-            list.add(new MockedElementExportInfo(storeType, "second", mediumNodeTag, status));
-            list.add(new MockedElementExportInfo(storeType, "first", mediumNodeTag, status));
-            list.add(new MockedElementExportInfo(storeType, "third", mediaStoreNodeTag, status));
+            list.add(new MockedElementExportInfo(storeType, "second", TagNames.MEDIUM, status));
+            list.add(new MockedElementExportInfo(storeType, "first", TagNames.MEDIUM, status));
+            list.add(new MockedElementExportInfo(storeType, "third", TagNames.MEDIANODE, status));
             storeElements.put(storeType, list);
         }
         if (siteStore) {
             final Store.Type storeType = Store.Type.SITESTORE;
             final List<ElementExportInfo> list = new ArrayList<>();
-            list.add(new MockedElementExportInfo(storeType, "third", pageRefNodeTag, status));
-            list.add(new MockedElementExportInfo(storeType, "first", pageRefNodeTag, status));
-            list.add(new MockedElementExportInfo(storeType, "second", pageRefNodeTag, status));
+            list.add(new MockedElementExportInfo(storeType, "third", TagNames.PAGEREF, status));
+            list.add(new MockedElementExportInfo(storeType, "first", TagNames.PAGEREF, status));
+            list.add(new MockedElementExportInfo(storeType, "second", TagNames.PAGEREF, status));
             storeElements.put(storeType, list);
         }
         if (templateStore) {
             final Store.Type storeType = Store.Type.TEMPLATESTORE;
             final List<ElementExportInfo> list = new ArrayList<>();
-            list.add(new MockedElementExportInfo(storeType, "second", workFlowNodeTag, status));
-            list.add(new MockedElementExportInfo(storeType, "fourth", templateNodeTag, status));
-            list.add(new MockedElementExportInfo(storeType, "third", linkTemplateNodeTag, status));
-            list.add(new MockedElementExportInfo(storeType, "first", templateNodeTag, status));
+            list.add(new MockedElementExportInfo(storeType, "second", TagNames.WORKFLOW, status));
+            list.add(new MockedElementExportInfo(storeType, "fourth", TagNames.TEMPLATE, status));
+            list.add(new MockedElementExportInfo(storeType, "third", TagNames.LINKTEMPLATE, status));
+            list.add(new MockedElementExportInfo(storeType, "first", TagNames.TEMPLATE, status));
             storeElements.put(storeType, list);
         }
         return storeElements;

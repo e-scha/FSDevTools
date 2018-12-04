@@ -106,14 +106,13 @@ public class MockedImportResult implements ImportOperation.Result {
     }
 
     private void fillCollection(final Set<BasicElementInfo> set, final String description) {
-//        TODO: CORE-9421 use TagNames-API instead of hardcoded Strings here
-        set.add(createElementInfo(4, Store.Type.TEMPLATESTORE, "PAGETEMPLATES", description));
-        set.add(createElementInfo(3, Store.Type.MEDIASTORE, "MEDIUM", description));
-        set.add(createElementInfo(1, Store.Type.PAGESTORE, "PAGE", description));
-        set.add(createElementInfo(5, Store.Type.TEMPLATESTORE, "LINKTEMPLATE", description));
-        set.add(createElementInfo(2, Store.Type.MEDIASTORE, "MEDIUM", description));
-        set.add(createElementInfo(6, Store.Type.TEMPLATESTORE, "FORMATTEMPLATE", description));
-        set.add(createElementInfo(7, Store.Type.TEMPLATESTORE, "FORMATTEMPLATE", description));
+        set.add(createElementInfo(4, Store.Type.TEMPLATESTORE, TagNames.PAGETEMPLATES.getName(), description));
+        set.add(createElementInfo(3, Store.Type.MEDIASTORE, TagNames.MEDIUM.getName(), description));
+        set.add(createElementInfo(1, Store.Type.PAGESTORE, TagNames.PAGE.getName(), description));
+        set.add(createElementInfo(5, Store.Type.TEMPLATESTORE, TagNames.LINKTEMPLATE.getName(), description));
+        set.add(createElementInfo(2, Store.Type.MEDIASTORE, TagNames.MEDIUM.getName(), description));
+        set.add(createElementInfo(6, Store.Type.TEMPLATESTORE, TagNames.FORMATTEMPLATE.getName(), description));
+        set.add(createElementInfo(7, Store.Type.TEMPLATESTORE, TagNames.FORMATTEMPLATE.getName(), description));
     }
 
     private BasicElementInfoImpl createElementInfo(final int id, final Store.Type storeType, final String nodeTag, final String description) {

@@ -3,6 +3,7 @@ package com.espirit.moddev.moduleinstaller;
 import com.espirit.moddev.moduleinstaller.webapp.WebAppIdentifierParser;
 import com.espirit.moddev.shared.StringUtils;
 
+import de.espirit.common.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +87,7 @@ public class ModuleInstallationRawParameters {
             return new ModuleInstallationParameters(projectName, firstSpiritModule, configurationFileForServiceName, projectAppConfigFile, splittedWebAppScopes, webAppConfigurationFilesForWebScopes);
         }
 
-        //TODO: Remove      @VisibleForTesting
+        @VisibleForTesting
         List<WebAppIdentifier> extractWebScopes(String webAppScopes) {
             if (StringUtils.isNullOrEmpty(webAppScopes)) {
                 return new ArrayList<>();
@@ -100,7 +101,7 @@ public class ModuleInstallationRawParameters {
             return new ArrayList<>();
         }
 
-        //TODO: Remove      @VisibleForTesting
+        @VisibleForTesting
         File createAndValidateOptionalProjectAppConfigurationFile(String projectAppConfigurationFile) {
             File result = createOptionalProjectAppConfigurationFile(projectAppConfigurationFile);
             if(result != null && (!result.isFile() || !result.exists())) {
@@ -109,7 +110,7 @@ public class ModuleInstallationRawParameters {
             return result;
         }
 
-        //TODO: Remove        @VisibleForTesting
+        @VisibleForTesting
         File createOptionalProjectAppConfigurationFile(String projectAppConfigurationFile) {
             return Optional.ofNullable(projectAppConfigurationFile)
                 .map(File::new)
@@ -130,14 +131,14 @@ public class ModuleInstallationRawParameters {
             }
         }
 
-        //TODO: Remove        @VisibleForTesting
+        @VisibleForTesting
         Map<WebAppIdentifier, File> getWebScopeFileMap(String webAppConfigurationFiles) {
             Set<Map.Entry<String, File>> entries = getStringFilesMap(webAppConfigurationFiles).entrySet();
             return entries.stream().collect(
                 toMap(entry -> new WebAppIdentifierParser().parseSingle(entry.getKey()), Map.Entry::getValue));
         }
 
-        //TODO: Remove        @VisibleForTesting
+        @VisibleForTesting
         Map<String, File> getStringFilesMap(String webAppConfigurations) {
             if(StringUtils.isNullOrEmpty(webAppConfigurations)) {
                 return new HashMap<>();
