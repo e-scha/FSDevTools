@@ -367,19 +367,17 @@ public class ModuleInstaller {
     }
 
     private static boolean setActiveWebServer(WebAppIdentifier webScope, Project project) {
-        String webAppId = webScope.createWebAppId(project).toString();
-
         if(!webScope.isGlobal()) {
             try {
                 project.lock();
-                String selectedWebServer = project.getSelectedWebServer(webScope.toString());
-                if(StringUtils.isNullOrEmpty(selectedWebServer)) {
-                    LOGGER.warn("Project has no webserver selected. Setting usage of InternalJetty.");
-                    selectedWebServer = "InternalJetty";
-                    project.setSelectedWebServer(webAppId, selectedWebServer);
+                final String scopeName = webScope.getScope().name();
+                String activeWebServer = project.getActiveWebServer(scopeName);
+                if(StringUtils.isNullOrEmpty(activeWebServer)) {
+                    LOGGER.warn("Project has no active webserver selected. Setting usage of FirstSpiritJetty.");
+                    activeWebServer = "FirstSpiritJetty";
+                    LOGGER.warn("Setting active webserver for project.");
+                    project.setActiveWebServer(scopeName, activeWebServer);
                 }
-                LOGGER.warn("Setting active webserver for project.");
-                project.setActiveWebServer(webAppId, selectedWebServer);
                 project.save();
                 project.unlock();
                 return true;
