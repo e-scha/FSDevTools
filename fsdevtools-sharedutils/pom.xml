@@ -10,6 +10,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>fsdevtools-sharedutils</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>de.espirit.firstspirit</groupId>
+            <artifactId>fs-isolated-runtime</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
 
 </project>

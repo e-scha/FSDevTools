@@ -1,10 +1,8 @@
 package com.espirit.moddev.moduleinstaller.webapp;
 
-import com.espirit.moddev.moduleinstaller.ModuleInstaller;
 import com.espirit.moddev.moduleinstaller.WebAppIdentifier;
 import com.espirit.moddev.shared.StringUtils;
 
-import de.espirit.firstspirit.module.WebEnvironment;
 import de.espirit.firstspirit.module.WebEnvironment.WebScope;
 import org.slf4j.LoggerFactory;
 

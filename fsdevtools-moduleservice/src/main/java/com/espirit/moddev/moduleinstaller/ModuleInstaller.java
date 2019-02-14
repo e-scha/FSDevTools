@@ -1,6 +1,8 @@
 package com.espirit.moddev.moduleinstaller;
 
 import com.espirit.moddev.shared.StringUtils;
+import com.espirit.moddev.shared.webapp.WebAppIdentifier;
+
 import de.espirit.firstspirit.access.Connection;
 import de.espirit.firstspirit.access.project.Project;
 import de.espirit.firstspirit.access.store.LockException;
@@ -21,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.espirit.moddev.moduleinstaller.WebAppIdentifier.isFs5RootWebApp;
+import static com.espirit.moddev.shared.webapp.WebAppIdentifier.isFs5RootWebApp;
 import static de.espirit.firstspirit.access.ConnectionManager.SOCKET_MODE;
 import static de.espirit.firstspirit.module.descriptor.ComponentDescriptor.Type.SERVICE;
 import static de.espirit.firstspirit.module.descriptor.ComponentDescriptor.Type.WEBAPP;
@@ -250,7 +252,6 @@ public class ModuleInstaller {
 
         installWebAppsAndCreateConfig(connection, moduleName, parameters.getProjectName(), moduleAdminAgent,
                 moduleDescriptor.getComponents(), parameters.getWebAppScopes(), parameters.getWebAppConfigurations());
-
         return deployWebAppsForScopes(connection, parameters.getProjectName(), moduleDescriptor.getComponents(), parameters.getWebAppScopes());
     }
 
@@ -261,9 +262,7 @@ public class ModuleInstaller {
         }
         for (ComponentDescriptor componentDescriptor : webAppDescriptors) {
             if (!deployWebApps(connection, projectName, webScopes, componentDescriptor)) {
-
                 return false;
-
             }
         }
         return true;
@@ -367,24 +366,27 @@ public class ModuleInstaller {
     }
 
     private static boolean setActiveWebServer(WebAppIdentifier webScope, Project project) {
-        if(!webScope.isGlobal()) {
+        if(webScope.isGlobal()) {
+            return true;
+        }
+        final String scopeName = webScope.getScope().name();
+        String activeWebServer = project.getActiveWebServer(scopeName);
+        if(StringUtils.isNullOrEmpty(project.getActiveWebServer(scopeName))) {
+            LOGGER.warn("Project has no active web server. Setting usage of InternalJetty.");
+            activeWebServer = "InternalJetty";
             try {
                 project.lock();
-                final String scopeName = webScope.getScope().name();
-                String activeWebServer = project.getActiveWebServer(scopeName);
-                if(StringUtils.isNullOrEmpty(activeWebServer)) {
-                    LOGGER.warn("Project has no active webserver selected. Setting usage of FirstSpiritJetty.");
-                    activeWebServer = "FirstSpiritJetty";
-                    LOGGER.warn("Setting active webserver for project.");
-                    project.setActiveWebServer(scopeName, activeWebServer);
-                }
+                project.setActiveWebServer(scopeName, activeWebServer);
                 project.save();
-                project.unlock();
-                return true;
             } catch (LockException e) {
                 LOGGER.error("Cannot lock and save project!", e);
                 return false;
+            } finally {
+                LOGGER.debug("Unlocking project");
+                project.unlock();
             }
+        } else {
+            LOGGER.info("'{}' already has an active web server for scope '{}'. Active web server is: {}", project.getName(), scopeName, activeWebServer);
         }
         return true;
     }

@@ -2,9 +2,6 @@ package com.espirit.moddev.moduleinstaller;
 
 import com.espirit.moddev.moduleinstaller.ModuleInstallationRawParameters.ModuleInstallationRawParametersBuilder;
 
-import de.espirit.firstspirit.module.WebEnvironment;
-
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -12,7 +9,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-import static de.espirit.firstspirit.module.WebEnvironment.WebScope.PREVIEW;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
