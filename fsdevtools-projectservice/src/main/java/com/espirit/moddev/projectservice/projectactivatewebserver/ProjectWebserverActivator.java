@@ -74,13 +74,14 @@ public class ProjectWebserverActivator {
         for (WebAppIdentifier scope : parameter.getScopes()) {
             String scopeName = scope.getScope().name();
             if (!shouldActivateWebServer(project, scopeName, parameter.getServerName(), parameter.isForceActivation())) {
-                LOGGER.info("Skip activation for scope {}", scopeName);
+                LOGGER.info("Skip activation for scope '{}'", scopeName);
                 continue;
             }
             String oldServerName = project.getActiveWebServer(scopeName);
             setActiveWebServer(parameter.getServerName(), project, scopeName);
-            deployWebAppToActiveWebServer(project, moduleAdminAgent, scope);
-            undeployWebAppFromInactiveWebServer();
+            if (deployWebAppToActiveWebServer(project, moduleAdminAgent, scope)) {
+                undeployWebAppFromInactiveWebServer(project, moduleAdminAgent, scope, oldServerName);
+            }
         }
         return true;
     }
@@ -88,16 +89,16 @@ public class ProjectWebserverActivator {
     private boolean shouldActivateWebServer(Project project, String scopeName, String serverName, boolean forceActivation) {
         String activeWebServer = project.getActiveWebServer(scopeName);
         if (activeWebServer == null || activeWebServer.isEmpty()) {
-            LOGGER.info("Could not find an activated web server for scope {}.", scopeName);
+            LOGGER.info("Could not find an activated web server for scope '{}'.", scopeName);
             return true;
         }
         if (Objects.equals(activeWebServer, serverName)) {
-            LOGGER.info("'{}' is already the activated web server for scope {}.", scopeName);
+            LOGGER.info("'{}' is already the activated web server for scope '{}'.", scopeName);
             return false;
         }
         if (!forceActivation) {
             LOGGER.info(
-                "'{}' already has an activated web server for scope {}. "
+                "'{}' already has an activated web server for scope '{}'. "
                 + "Enable 'force activation' flag to overwrite the currently active web server.",
                 project.getName(), scopeName);
             return false;
@@ -106,30 +107,49 @@ public class ProjectWebserverActivator {
     }
 
     private void setActiveWebServer(String activeWebServer, Project project, String scopeName) throws ExecutionException {
-        LOGGER.debug("Try setting {} as active web server.", activeWebServer);
+        LOGGER.debug("Try to set '{}' as active web server.", activeWebServer);
         try {
             project.lock();
             project.setActiveWebServer(scopeName, activeWebServer);
             project.save();
         } catch (LockException e) {
             LOGGER.error("Cannot lock and save project!", e);
-            throw new ExecutionException(activeWebServer + " could not be set as active web server for scope '" + scopeName + "'");
+            throw new ExecutionException(activeWebServer + " could not be set as active web server for scope '" + scopeName + "'.");
         } finally {
             LOGGER.debug("Unlocking project");
             project.unlock();
         }
     }
 
-    private void deployWebAppToActiveWebServer(Project project, ModuleAdminAgent moduleAdminAgent, WebAppIdentifier scope) {
-        if (scope.isGlobal()) {
+    /**
+     * Deploys the scope's corresponding web app to the scope's corresponding active web server.
+     * @param project used to create the web app id
+     * @param moduleAdminAgent used for deployments
+     * @param scope web app to be deployed
+     * @return success indicator
+     */
+    private boolean deployWebAppToActiveWebServer(Project project, ModuleAdminAgent moduleAdminAgent, WebAppIdentifier scope) {
+        try {
             WebAppId webAppId = scope.createWebAppId(project);
-            moduleAdminAgent.deployWebApp(webAppId);
-        } else {
-
+            final boolean successfullyDeployed = moduleAdminAgent.deployWebApp(webAppId);
+            if (!successfullyDeployed) {
+                LOGGER.error("'{}' could not be deployed on server '{}'", webAppId, project.getActiveWebServer(scope.getScope().name()));
+                return false;
+            }
+        } catch (SecurityException e) {
+            if (scope.isGlobal()) {
+                LOGGER.error("You need to have server admin rights.", e);
+            } else {
+                LOGGER.error("You need to have project admin rights for project '{}'", project.getName(), e);
+            }
+            return false;
         }
+        return true;
     }
 
-    private void undeployWebAppFromInactiveWebServer() {
+    private void undeployWebAppFromInactiveWebServer(Project project, ModuleAdminAgent moduleAdminAgent,
+                                                     WebAppIdentifier scope, String oldServerName) {
+        //TODO: continue work here!
     }
 
     private boolean arePreconditionsFulfilled(Connection connection, ProjectWebServerActivationParameter parameters) {
