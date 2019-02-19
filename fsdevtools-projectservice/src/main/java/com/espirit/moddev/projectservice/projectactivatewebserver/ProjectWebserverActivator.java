@@ -35,8 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
-
-import static de.espirit.firstspirit.module.WebEnvironment.*;
+import java.util.function.Function;
 
 /**
  * Class that can activate a web server for given FirstSpirit project.
@@ -65,10 +64,6 @@ public class ProjectWebserverActivator {
             LOGGER.error("Preconditions for server activation are not fulfilled!");
             return false;
         }
-        return performWebServerActivation(connection, parameter);
-    }
-
-    private boolean performWebServerActivation(Connection connection, ProjectWebServerActivationParameter parameter) {
         final ModuleAdminAgent moduleAdminAgent = connection.getBroker().requireSpecialist(ModuleAdminAgent.TYPE);
         Project project = connection.getProjectByName(parameter.getProjectName());
         for (WebAppIdentifier scope : parameter.getScopes()) {
@@ -77,15 +72,74 @@ public class ProjectWebserverActivator {
                 LOGGER.info("Skip activation for scope '{}'", scopeName);
                 continue;
             }
-            String oldServerName = project.getActiveWebServer(scopeName);
-            setActiveWebServer(parameter.getServerName(), project, scopeName);
-            if (deployWebAppToActiveWebServer(project, moduleAdminAgent, scope)) {
-                undeployWebAppFromInactiveWebServer(project, moduleAdminAgent, scope, oldServerName);
-            }
+            migrateActiveWebServer(parameter.getServerName(), moduleAdminAgent, project, scope, scopeName);
         }
         return true;
     }
 
+    /**
+     * Undeploys a scope from the current web server, sets the new active web server and then deploys the scope
+     * on the new active web server.
+     * @param scopeName the name of a scope (aka web app name)
+     * @param activeServerName should be the name of the new active web server. Should not be empty.
+     * @param project given project
+     * @param moduleAdminAgent a moduleAdminAgent derived from a connection
+     * @param scope web app to be undeployed / deployed
+     */
+    private void migrateActiveWebServer(String activeServerName, ModuleAdminAgent moduleAdminAgent, Project project,
+                                        WebAppIdentifier scope, String scopeName) {
+        final String oldActiveServerName = project.getActiveWebServer(scopeName);
+        final boolean
+            successfullyUndeployedScope =
+            performFunctionToActiveWebServer(project, moduleAdminAgent::undeployWebApp, scope, "Scope could not be undeployed from server");
+        if (successfullyUndeployedScope) {
+            recoverDeploymentForScope(scopeName, oldActiveServerName, project, moduleAdminAgent, scope);
+            return;
+        }
+        try {
+            setActiveWebServer(activeServerName, project, scopeName);
+        } catch (ExecutionException e) {
+            recoverDeploymentForScope(scopeName, oldActiveServerName, project, moduleAdminAgent, scope);
+            return;
+        }
+        final boolean
+            successfullyDeployedScope =
+            performFunctionToActiveWebServer(project, moduleAdminAgent::deployWebApp, scope, "Scope could not be deployed on server");
+        if (successfullyDeployedScope) {
+            recoverDeploymentForScope(scopeName, oldActiveServerName, project, moduleAdminAgent, scope);
+        }
+    }
+
+    /**
+     * Performs the same operations as the migrateActiveWebServer method but without fail-safe.
+     * This method is handy, if you give the old active server name into the parameters, this method will then
+     * try to recreate the state of the scope's active web server configuration before the migration process took place.
+     * There is no warranty of the correct execution of the recovery, so the user is advised to check the state of the
+     * configuration afterwards.
+     *
+     * @param scopeName the name of a scope (aka web app name)
+     * @param activeServerName should be the name of the original (pre manipulation) active web server. May be empty.
+     * @param project given project
+     * @param moduleAdminAgent a moduleAdminAgent derived from a connection
+     * @param scope web app to be undeployed / deployed
+     */
+    private void recoverDeploymentForScope(String scopeName, String activeServerName, Project project,
+                                           ModuleAdminAgent moduleAdminAgent, WebAppIdentifier scope) {
+        LOGGER.warn("The migration from an old web server to a new web server failed. Try to recover state!");
+        performFunctionToActiveWebServer(project, moduleAdminAgent::undeployWebApp, scope, "Scope could not be undeployed from server");
+        setActiveWebServer(activeServerName, project, scopeName);
+        performFunctionToActiveWebServer(project, moduleAdminAgent::deployWebApp, scope, "Scope could not be deployed to server");
+        LOGGER.warn("Recovery process has finished! Please check the project web app configuration state for correctness.");
+    }
+
+    /**
+     * Checks if the given web server should be activated.
+     * @param project given project
+     * @param scopeName the name of a scope (aka web app name)
+     * @param serverName the name of an installed web server (aka web app name)
+     * @param forceActivation a flag as indicator if an already activated (none empty) web server should be replaced
+     * @return false if the new active web server is already the current web server or there is an active web server but the force flag is not set
+     */
     private boolean shouldActivateWebServer(Project project, String scopeName, String serverName, boolean forceActivation) {
         String activeWebServer = project.getActiveWebServer(scopeName);
         if (activeWebServer == null || activeWebServer.isEmpty()) {
@@ -106,6 +160,14 @@ public class ProjectWebserverActivator {
         return true;
     }
 
+    /**
+     * Sets the activate web server from a project's scope to a given server name.
+     * After this method, the project is unlocked!
+     * @param activeWebServer the given server name
+     * @param project given project
+     * @param scopeName the name of a scope (aka web app name)
+     * @throws ExecutionException if the active web server could not be set.
+     */
     private void setActiveWebServer(String activeWebServer, Project project, String scopeName) throws ExecutionException {
         LOGGER.debug("Try to set '{}' as active web server.", activeWebServer);
         try {
@@ -122,18 +184,19 @@ public class ProjectWebserverActivator {
     }
 
     /**
-     * Deploys the scope's corresponding web app to the scope's corresponding active web server.
+     * deploys/undeploys the scope's corresponding web app to/from the scope's corresponding active web server.
      * @param project used to create the web app id
-     * @param moduleAdminAgent used for deployments
+     * @param function deploy or undeploy function (e.g. {@see de.espirit.firstspirit.agency.ModuleAdminAgent#deployWebApp(WebAppId webAppId)}
      * @param scope web app to be deployed
+     * @param errorMsg message to be shown, if function fails to success
      * @return success indicator
      */
-    private boolean deployWebAppToActiveWebServer(Project project, ModuleAdminAgent moduleAdminAgent, WebAppIdentifier scope) {
+    private boolean performFunctionToActiveWebServer(Project project, Function<WebAppId, Boolean> function, WebAppIdentifier scope, String errorMsg) {
         try {
             WebAppId webAppId = scope.createWebAppId(project);
-            final boolean successfullyDeployed = moduleAdminAgent.deployWebApp(webAppId);
-            if (!successfullyDeployed) {
-                LOGGER.error("'{}' could not be deployed on server '{}'", webAppId, project.getActiveWebServer(scope.getScope().name()));
+            final boolean successIndicator = function.apply(webAppId);
+            if (!successIndicator) {
+                LOGGER.error(errorMsg);
                 return false;
             }
         } catch (SecurityException e) {
@@ -147,11 +210,12 @@ public class ProjectWebserverActivator {
         return true;
     }
 
-    private void undeployWebAppFromInactiveWebServer(Project project, ModuleAdminAgent moduleAdminAgent,
-                                                     WebAppIdentifier scope, String oldServerName) {
-        //TODO: continue work here!
-    }
-
+    /**
+     * Checks if necessary preconditions for further operations are fulfilled
+     * @param connection the connection for the FirstSpirit
+     * @param parameters the parameters used for the activation
+     * @return only true if every condition is met
+     */
     private boolean arePreconditionsFulfilled(Connection connection, ProjectWebServerActivationParameter parameters) {
         if (connection == null || !connection.isConnected()) {
             LOGGER.error("Please provide a connected connection");
