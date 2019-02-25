@@ -40,14 +40,14 @@ import java.util.function.Function;
 /**
  * Class that can activate a web server for given FirstSpirit project.
  */
-public class ProjectWebserverActivator {
+public class ProjectWebServerActivator {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProjectWebserverActivator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProjectWebServerActivator.class);
 
     /**
      * Empty constructor to avoid implicit constructor
      */
-    public ProjectWebserverActivator() {
+    public ProjectWebServerActivator() {
         // Nothing to do here
     }
 

@@ -67,5 +67,7 @@ public class ProjectWebServerActivationParameter {
         return forceActivation;
     }
 
-
+    public static ProjectWebServerActivationParameterBuilder builder() {
+        return new ProjectWebServerActivationParameterBuilder();
+    }
 }
