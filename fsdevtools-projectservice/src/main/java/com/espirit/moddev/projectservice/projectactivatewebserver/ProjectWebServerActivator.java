@@ -89,12 +89,14 @@ public class ProjectWebServerActivator {
     private void migrateActiveWebServer(String activeServerName, ModuleAdminAgent moduleAdminAgent, Project project,
                                         WebAppIdentifier scope, String scopeName) {
         final String oldActiveServerName = project.getActiveWebServer(scopeName);
-        final boolean
-            successfullyUndeployedScope =
-            performFunctionToActiveWebServer(project, moduleAdminAgent::undeployWebApp, scope, "Scope could not be undeployed from server");
-        if (successfullyUndeployedScope) {
-            recoverDeploymentForScope(scopeName, oldActiveServerName, project, moduleAdminAgent, scope);
-            return;
+        if (oldActiveServerName != null && !oldActiveServerName.isEmpty()) {
+            final boolean
+                successfullyUndeployedScope =
+                undeployFromActiveWebServer(project, moduleAdminAgent, scope);
+            if (!successfullyUndeployedScope) {
+                recoverDeploymentForScope(scopeName, oldActiveServerName, project, moduleAdminAgent, scope);
+                return;
+            }
         }
         try {
             setActiveWebServer(activeServerName, project, scopeName);
@@ -104,8 +106,8 @@ public class ProjectWebServerActivator {
         }
         final boolean
             successfullyDeployedScope =
-            performFunctionToActiveWebServer(project, moduleAdminAgent::deployWebApp, scope, "Scope could not be deployed on server");
-        if (successfullyDeployedScope) {
+            deployToActiveWebServer(project, moduleAdminAgent, scope);
+        if (!successfullyDeployedScope) {
             recoverDeploymentForScope(scopeName, oldActiveServerName, project, moduleAdminAgent, scope);
         }
     }
@@ -126,9 +128,12 @@ public class ProjectWebServerActivator {
     private void recoverDeploymentForScope(String scopeName, String activeServerName, Project project,
                                            ModuleAdminAgent moduleAdminAgent, WebAppIdentifier scope) {
         LOGGER.warn("The migration from an old web server to a new web server failed. Try to recover state!");
-        performFunctionToActiveWebServer(project, moduleAdminAgent::undeployWebApp, scope, "Scope could not be undeployed from server");
+        final String oldActiveServerName = project.getActiveWebServer(scopeName);
+        if (oldActiveServerName != null && !oldActiveServerName.isEmpty()) {
+            undeployFromActiveWebServer(project, moduleAdminAgent, scope);
+        }
         setActiveWebServer(activeServerName, project, scopeName);
-        performFunctionToActiveWebServer(project, moduleAdminAgent::deployWebApp, scope, "Scope could not be deployed to server");
+        deployToActiveWebServer(project, moduleAdminAgent, scope);
         LOGGER.warn("Recovery process has finished! Please check the project web app configuration state for correctness.");
     }
 
@@ -184,19 +189,54 @@ public class ProjectWebServerActivator {
     }
 
     /**
-     * deploys/undeploys the scope's corresponding web app to/from the scope's corresponding active web server.
+     * deploys the scope's corresponding web app to/from the scope's corresponding active web server.
      * @param project used to create the web app id
-     * @param function deploy or undeploy function (e.g. {@see de.espirit.firstspirit.agency.ModuleAdminAgent#deployWebApp(WebAppId webAppId)}
+     * @param moduleAdminAgent a moduleAdminAgent derived from a connection
      * @param scope web app to be deployed
-     * @param errorMsg message to be shown, if function fails to success
      * @return success indicator
      */
-    private boolean performFunctionToActiveWebServer(Project project, Function<WebAppId, Boolean> function, WebAppIdentifier scope, String errorMsg) {
+    private boolean deployToActiveWebServer(Project project, ModuleAdminAgent moduleAdminAgent, WebAppIdentifier scope) {
+        final String activeWebServer = project.getActiveWebServer(scope.getScope().name());
+        if (activeWebServer == null || activeWebServer.isEmpty()) {
+            LOGGER.info("Function {} can not be performed, due to an empty web server");
+            return false;
+        }
         try {
             WebAppId webAppId = scope.createWebAppId(project);
-            final boolean successIndicator = function.apply(webAppId);
+            final boolean successIndicator = moduleAdminAgent.deployWebApp(webAppId);
             if (!successIndicator) {
-                LOGGER.error(errorMsg);
+                LOGGER.error("Scope could not be deployed to server");
+                return false;
+            }
+        } catch (SecurityException e) {
+            if (scope.isGlobal()) {
+                LOGGER.error("You need to have server admin rights.", e);
+            } else {
+                LOGGER.error("You need to have project admin rights for project '{}'", project.getName(), e);
+            }
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * undeploys the scope's corresponding web app from the scope's corresponding active web server.
+     * @param project used to create the web app id
+     * @param moduleAdminAgent a moduleAdminAgent derived from a connection
+     * @param scope web app to be deployed
+     * @return success indicator
+     */
+    private boolean undeployFromActiveWebServer(Project project, ModuleAdminAgent moduleAdminAgent, WebAppIdentifier scope) {
+        final String activeWebServer = project.getActiveWebServer(scope.getScope().name());
+        if (activeWebServer == null || activeWebServer.isEmpty()) {
+            LOGGER.info("Function {} can not be performed, due to an empty web server");
+            return false;
+        }
+        try {
+            WebAppId webAppId = scope.createWebAppId(project);
+            final boolean successIndicator = moduleAdminAgent.undeployWebApp(webAppId);
+            if (!successIndicator) {
+                LOGGER.error("Scope could not be undeployed from server");
                 return false;
             }
         } catch (SecurityException e) {

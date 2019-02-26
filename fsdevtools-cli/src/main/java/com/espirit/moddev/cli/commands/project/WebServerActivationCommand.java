@@ -19,13 +19,13 @@ import org.slf4j.LoggerFactory;
 
 @Command(name = "activatewebserver", groupNames = {"project"}, description = "Activates a web server for a number of project's web scopes")
 @Examples(
-    examples = {"fs-cli project activatewebserver -pn \"existingProjectName\" -was \"'WEBEDIT'\" -wsn \"FirstSpirit Jetty\" -fwa"},
+    examples = {"fs-cli project activatewebserver -wpn 'existingProjectName' -was 'WEBEDIT' -wsn 'FirstSpirit Jetty' -fwa"},
     descriptions = {"Undeploys web app scopes from an old web server, activates web server 'FirstSpirit Jetty' and deploys the given web app scopes to the new webserver"})
 
 public class WebServerActivationCommand extends SimpleCommand<SimpleResult> {
     protected static final Logger LOGGER = LoggerFactory.getLogger(com.espirit.moddev.cli.commands.project.WebServerActivationCommand.class);
 
-    @Option(type = OptionType.COMMAND, name = {"-pn", "--projectName"}, description = "The name of the project for which the web server activation will be performed.")
+    @Option(type = OptionType.COMMAND, name = {"-wpn", "--webServerActivationProjectName"}, description = "The name of the project for which the web server activation will be performed.")
     @Required
     private String projectName;
     @Option(type = OptionType.COMMAND, name = {"-wsn", "--webServerName"}, description = "The name of the web server which should be activated.")
