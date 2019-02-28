@@ -12,15 +12,17 @@ import com.github.rvesse.airline.annotations.OptionType;
 import com.github.rvesse.airline.annotations.help.Examples;
 import com.github.rvesse.airline.annotations.restrictions.Required;
 
+import de.espirit.common.VisibleForTesting;
 import de.espirit.firstspirit.access.Connection;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Command(name = "activatewebserver", groupNames = {"project"}, description = "Activates a web server for a number of project's web scopes")
 @Examples(
-    examples = {"fs-cli project activatewebserver -wpn 'existingProjectName' -was 'WEBEDIT' -wsn 'FirstSpirit Jetty' -fwa"},
-    descriptions = {"Undeploys web app scopes from an old web server, activates web server 'FirstSpirit Jetty' and deploys the given web app scopes to the new webserver"})
+    examples = {"fs-cli project activatewebserver -wpn \"existingProjectName\" -was \"WEBEDIT\" -wsn \"FirstSpirit Jetty\" -fwa"},
+    descriptions = {"Undeploys web app scope 'WEBEDIT' from an old web server, activates web server 'FirstSpirit Jetty' and deploys the given web app scope 'WEBEDIT' to the new web server."})
 
 public class WebServerActivationCommand extends SimpleCommand<SimpleResult> {
     protected static final Logger LOGGER = LoggerFactory.getLogger(com.espirit.moddev.cli.commands.project.WebServerActivationCommand.class);
@@ -31,7 +33,7 @@ public class WebServerActivationCommand extends SimpleCommand<SimpleResult> {
     @Option(type = OptionType.COMMAND, name = {"-wsn", "--webServerName"}, description = "The name of the web server which should be activated.")
     @Required
     private String webServerName;
-    @Option(type = OptionType.COMMAND, name = {"-was", "--webAppScopes"}, description = "Define a map-like configuration for webapp scopes of the given module - comma-separated values from the FirstSpirit WebScope enum."
+    @Option(type = OptionType.COMMAND, name = {"-was", "--webAppScopes"}, description = "Define a set of webapp scopes of the given project - comma-separated values from the FirstSpirit WebScope enum."
                                                                                         + " The FS WebScope enum contains the following keys:\n"
                                                                                         + "'GLOBAL'\n"
                                                                                         + "'LIVE'\n"
@@ -46,6 +48,22 @@ public class WebServerActivationCommand extends SimpleCommand<SimpleResult> {
 
     @Override
     public SimpleResult call() {
+        SimpleResult failure = getQuickFail();
+        if (failure != null) {
+            return failure;
+        }
+        try(final Connection connection = create()) {
+            connection.connect();
+            boolean activated = new ProjectWebServerActivator().activateWebServer(connection, getParameters());
+            return new SimpleResult<>(activated ? true : new IllegalStateException("Web server activation failed."));
+
+        } catch (final Exception e) {
+            return new SimpleResult<>(e);
+        }
+    }
+
+    @VisibleForTesting
+    SimpleResult getQuickFail() {
         if (projectName == null || projectName.isEmpty()) {
             return new SimpleResult<>(new IllegalArgumentException("Missing parameter for project name"));
         }
@@ -55,21 +73,17 @@ public class WebServerActivationCommand extends SimpleCommand<SimpleResult> {
         if (webAppScopes == null || webAppScopes.isEmpty()) {
             return new SimpleResult<>(new IllegalArgumentException("Missing parameter for web app scopes"));
         }
-        try(final Connection connection = create()) {
-            connection.connect();
-            ProjectWebServerActivationParameter parameter = ProjectWebServerActivationParameter.builder()
-                .withForceActivation(forceWebServerActivation)
-                .atProjectName(projectName)
-                .withServerName(webServerName)
-                .forScopes(new WebAppIdentifierParser().extractWebScopes(webAppScopes))
-                .build();
+        return null;
+    }
 
-            boolean activated = new ProjectWebServerActivator().activateWebServer(connection, parameter);
-            return new SimpleResult<>(activated ? activated : new IllegalStateException("Web server activation failed."));
-
-        } catch (final Exception e) {
-            return new SimpleResult<>(e);
-        }
+    @VisibleForTesting
+    ProjectWebServerActivationParameter getParameters() {
+        return ProjectWebServerActivationParameter.builder()
+            .withForceActivation(forceWebServerActivation)
+            .atProjectName(projectName)
+            .withServerName(webServerName)
+            .forScopes(new WebAppIdentifierParser().extractWebScopes(webAppScopes))
+            .build();
     }
 
     protected Connection create() {

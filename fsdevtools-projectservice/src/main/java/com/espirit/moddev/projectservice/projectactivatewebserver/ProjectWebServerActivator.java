@@ -57,7 +57,7 @@ public class ProjectWebServerActivator {
      *
      * @param connection the connection that is used to access the FirstSpirit server
      * @param parameter  the parameters for the server activation
-     * @return true if the project was imported successfully, false otherwise
+     * @return true only if operation was performed successfully
      */
     public boolean activateWebServer(Connection connection, ProjectWebServerActivationParameter parameter) {
         if (!arePreconditionsFulfilled(connection, parameter)) {
@@ -72,8 +72,14 @@ public class ProjectWebServerActivator {
                 LOGGER.info("Skip activation for scope '{}'", scopeName);
                 continue;
             }
-            migrateActiveWebServer(parameter.getServerName(), moduleAdminAgent, project, scope, scopeName);
+            final boolean successfullyMigrated = migrateActiveWebServer(parameter.getServerName(), moduleAdminAgent, project, scope, scopeName);
+            if (!successfullyMigrated) {
+                LOGGER.error("Migration of active web server failed. Aborting Process");
+                return false;
+            }
+            LOGGER.info("Finished migration for scope '{}'", scopeName);
         }
+        LOGGER.info("Successfully finished activation operation for web server '{}'", parameter.getServerName());
         return true;
     }
 
@@ -86,7 +92,7 @@ public class ProjectWebServerActivator {
      * @param moduleAdminAgent a moduleAdminAgent derived from a connection
      * @param scope web app to be undeployed / deployed
      */
-    private void migrateActiveWebServer(String activeServerName, ModuleAdminAgent moduleAdminAgent, Project project,
+    private boolean migrateActiveWebServer(String activeServerName, ModuleAdminAgent moduleAdminAgent, Project project,
                                         WebAppIdentifier scope, String scopeName) {
         final String oldActiveServerName = project.getActiveWebServer(scopeName);
         if (oldActiveServerName != null && !oldActiveServerName.isEmpty()) {
@@ -95,21 +101,23 @@ public class ProjectWebServerActivator {
                 undeployFromActiveWebServer(project, moduleAdminAgent, scope);
             if (!successfullyUndeployedScope) {
                 recoverDeploymentForScope(scopeName, oldActiveServerName, project, moduleAdminAgent, scope);
-                return;
+                return false;
             }
         }
         try {
             setActiveWebServer(activeServerName, project, scopeName);
         } catch (ExecutionException e) {
             recoverDeploymentForScope(scopeName, oldActiveServerName, project, moduleAdminAgent, scope);
-            return;
+            return false;
         }
         final boolean
             successfullyDeployedScope =
             deployToActiveWebServer(project, moduleAdminAgent, scope);
         if (!successfullyDeployedScope) {
             recoverDeploymentForScope(scopeName, oldActiveServerName, project, moduleAdminAgent, scope);
+            return false;
         }
+        return true;
     }
 
     /**
@@ -152,7 +160,7 @@ public class ProjectWebServerActivator {
             return true;
         }
         if (Objects.equals(activeWebServer, serverName)) {
-            LOGGER.info("'{}' is already the activated web server for scope '{}'.", scopeName);
+            LOGGER.info("'{}' is already the activated web server for scope '{}'.", activeWebServer, scopeName);
             return false;
         }
         if (!forceActivation) {
@@ -179,6 +187,7 @@ public class ProjectWebServerActivator {
             project.lock();
             project.setActiveWebServer(scopeName, activeWebServer);
             project.save();
+            LOGGER.info("Set '{}' as new active web server.", activeWebServer);
         } catch (LockException e) {
             LOGGER.error("Cannot lock and save project!", e);
             throw new ExecutionException(activeWebServer + " could not be set as active web server for scope '" + scopeName + "'.");
@@ -189,7 +198,7 @@ public class ProjectWebServerActivator {
     }
 
     /**
-     * deploys the scope's corresponding web app to/from the scope's corresponding active web server.
+     * Deploys the scope's corresponding web app to/from the scope's corresponding active web server.
      * @param project used to create the web app id
      * @param moduleAdminAgent a moduleAdminAgent derived from a connection
      * @param scope web app to be deployed
@@ -198,14 +207,14 @@ public class ProjectWebServerActivator {
     private boolean deployToActiveWebServer(Project project, ModuleAdminAgent moduleAdminAgent, WebAppIdentifier scope) {
         final String activeWebServer = project.getActiveWebServer(scope.getScope().name());
         if (activeWebServer == null || activeWebServer.isEmpty()) {
-            LOGGER.info("Function {} can not be performed, due to an empty web server");
+            LOGGER.info("Deployment can not be performed, due to an empty web server");
             return false;
         }
         try {
             WebAppId webAppId = scope.createWebAppId(project);
             final boolean successIndicator = moduleAdminAgent.deployWebApp(webAppId);
             if (!successIndicator) {
-                LOGGER.error("Scope could not be deployed to server");
+                LOGGER.error("Scope with id '{}' could not be deployed to web server '{}'. Make sure, a server with this name is installed!", webAppId.toString(), activeWebServer);
                 return false;
             }
         } catch (SecurityException e) {
@@ -220,7 +229,7 @@ public class ProjectWebServerActivator {
     }
 
     /**
-     * undeploys the scope's corresponding web app from the scope's corresponding active web server.
+     * Undeploys the scope's corresponding web app from the scope's corresponding active web server.
      * @param project used to create the web app id
      * @param moduleAdminAgent a moduleAdminAgent derived from a connection
      * @param scope web app to be deployed
@@ -229,14 +238,15 @@ public class ProjectWebServerActivator {
     private boolean undeployFromActiveWebServer(Project project, ModuleAdminAgent moduleAdminAgent, WebAppIdentifier scope) {
         final String activeWebServer = project.getActiveWebServer(scope.getScope().name());
         if (activeWebServer == null || activeWebServer.isEmpty()) {
-            LOGGER.info("Function {} can not be performed, due to an empty web server");
-            return false;
+            LOGGER.info("Undeployment can not be performed, due to an empty web server");
+            // In this case, there is nothing to undeploy, so the result is always successful
+            return true;
         }
         try {
             WebAppId webAppId = scope.createWebAppId(project);
             final boolean successIndicator = moduleAdminAgent.undeployWebApp(webAppId);
             if (!successIndicator) {
-                LOGGER.error("Scope could not be undeployed from server");
+                LOGGER.error("Scope '{}' could not be undeployed from server", scope.getScope().name());
                 return false;
             }
         } catch (SecurityException e) {
