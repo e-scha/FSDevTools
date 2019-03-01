@@ -15,7 +15,6 @@ import com.github.rvesse.airline.annotations.restrictions.Required;
 import de.espirit.common.VisibleForTesting;
 import de.espirit.firstspirit.access.Connection;
 
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,8 +61,7 @@ public class WebServerActivationCommand extends SimpleCommand<SimpleResult> {
         }
     }
 
-    @VisibleForTesting
-    SimpleResult getQuickFail() {
+    private SimpleResult getQuickFail() {
         if (projectName == null || projectName.isEmpty()) {
             return new SimpleResult<>(new IllegalArgumentException("Missing parameter for project name"));
         }
@@ -76,8 +74,7 @@ public class WebServerActivationCommand extends SimpleCommand<SimpleResult> {
         return null;
     }
 
-    @VisibleForTesting
-    ProjectWebServerActivationParameter getParameters() {
+    private ProjectWebServerActivationParameter getParameters() {
         return ProjectWebServerActivationParameter.builder()
             .withForceActivation(forceWebServerActivation)
             .atProjectName(projectName)

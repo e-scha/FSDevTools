@@ -1,6 +1,7 @@
 package com.espirit.moddev.cli.testcommands;
 
 import com.espirit.moddev.IntegrationTest;
+import com.espirit.moddev.cli.Cli;
 import com.espirit.moddev.cli.commands.project.WebServerActivationCommand;
 import com.espirit.moddev.cli.results.SimpleResult;
 
@@ -17,10 +18,18 @@ public class WebServerActivationCommandIT extends AbstractIntegrationTest {
         WebServerActivationCommand command = new WebServerActivationCommand();
         command.setProject(PROJECT_NAME);
         initContextWithDefaultConfiguration(command);
+        SimpleResult<?> result = command.call();
 
-        SimpleResult result = command.call();
-
-        Assert.assertTrue("Exporting with an empty identifier list is permitted", result.isError());
-        Assert.assertTrue(result.getError() instanceof IllegalArgumentException);
+        Assert.assertNotNull(result);
+        Assert.assertTrue("Result should be an error!", result.isError());
+        Assert.assertTrue("Expect resulting error to be illegal state. Actual: " + result.getError(), result.getError() instanceof IllegalArgumentException);
+        Assert.assertFalse(command.needsContext());
     }
+
+//    @Test(expected = IllegalStateException.class)
+//    public void testExecution() throws Exception {
+//        Cli cli = new Cli();
+//        final String[] args = {"project", "activatewebserver", "-wpn", "ValidProjectName", "-was", "WEBEDIT,LIVE", "-wsn", "some valid web server"};
+//        cli.execute(args);
+//    }
 }
