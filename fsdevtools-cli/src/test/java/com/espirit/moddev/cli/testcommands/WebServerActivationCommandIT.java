@@ -26,10 +26,14 @@ public class WebServerActivationCommandIT extends AbstractIntegrationTest {
         Assert.assertFalse(command.needsContext());
     }
 
-//    @Test(expected = IllegalStateException.class)
-//    public void testExecution() throws Exception {
-//        Cli cli = new Cli();
-//        final String[] args = {"project", "activatewebserver", "-wpn", "ValidProjectName", "-was", "WEBEDIT,LIVE", "-wsn", "some valid web server"};
-//        cli.execute(args);
-//    }
+    @Test
+    public void testExecution() throws Exception {
+        Cli cli = new Cli();
+        final String[] args = {"project", "activatewebserver", "-was", "WEBEDIT,LIVE", "-wsn", "some valid web server"};
+        try {
+            cli.execute(args);
+        } catch (Exception e) {
+            Assert.assertTrue("Should be illegal state", e instanceof IllegalStateException);
+        }
+    }
 }

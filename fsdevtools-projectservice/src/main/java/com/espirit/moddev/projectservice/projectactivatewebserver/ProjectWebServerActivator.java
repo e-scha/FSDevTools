@@ -24,6 +24,7 @@ package com.espirit.moddev.projectservice.projectactivatewebserver;
 
 import com.espirit.moddev.shared.webapp.WebAppIdentifier;
 
+import de.espirit.common.VisibleForTesting;
 import de.espirit.firstspirit.access.Connection;
 import de.espirit.firstspirit.access.project.Project;
 import de.espirit.firstspirit.access.script.ExecutionException;
@@ -266,7 +267,8 @@ public class ProjectWebServerActivator {
      * @param parameters the parameters used for the activation
      * @return only true if every condition is met
      */
-    private boolean arePreconditionsFulfilled(Connection connection, ProjectWebServerActivationParameter parameters) {
+    @VisibleForTesting
+    boolean arePreconditionsFulfilled(Connection connection, ProjectWebServerActivationParameter parameters) {
         if (connection == null || !connection.isConnected()) {
             LOGGER.error("Please provide a connected connection");
             return false;
