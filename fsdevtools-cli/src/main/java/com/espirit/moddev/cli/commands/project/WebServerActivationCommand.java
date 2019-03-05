@@ -35,7 +35,6 @@ public class WebServerActivationCommand extends SimpleCommand<SimpleResult> {
     @Option(type = OptionType.COMMAND, name = {"-was", "--webAppScopes"}, description = "Define a set of webapp scopes of the given project - comma-separated values from the FirstSpirit WebScope enum."
                                                                                         + " The FS WebScope enum contains the following keys:\n"
                                                                                         + "'GLOBAL'\n"
-                                                                                        + "'LIVE'\n"
                                                                                         + "'PREVIEW'\n"
                                                                                         + "'STAGING'\n"
                                                                                         + "'WEBEDIT'\n"

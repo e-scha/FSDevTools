@@ -31,6 +31,7 @@ import de.espirit.firstspirit.access.script.ExecutionException;
 import de.espirit.firstspirit.access.store.LockException;
 import de.espirit.firstspirit.agency.ModuleAdminAgent;
 import de.espirit.firstspirit.agency.WebAppId;
+import de.espirit.firstspirit.module.WebEnvironment;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +70,7 @@ public class ProjectWebServerActivator {
         Project project = connection.getProjectByName(parameter.getProjectName());
         for (WebAppIdentifier scope : parameter.getScopes()) {
             String scopeName = scope.getScope().name();
-            if (!shouldActivateWebServer(project, scopeName, parameter.getServerName(), parameter.isForceActivation())) {
+            if (!shouldActivateWebServer(project, scope, parameter.getServerName(), parameter.isForceActivation())) {
                 LOGGER.info("Skip activation for scope '{}'", scopeName);
                 continue;
             }
@@ -78,7 +79,7 @@ public class ProjectWebServerActivator {
                 LOGGER.error("Migration of active web server failed. Aborting Process");
                 return false;
             }
-            LOGGER.info("Finished migration for scope '{}'", scopeName);
+            LOGGER.info("Finished migration for scope with id '{}'", scope.createWebAppId(project).toString());
         }
         LOGGER.info("Successfully finished activation operation for web server '{}'", parameter.getServerName());
         return true;
@@ -149,26 +150,32 @@ public class ProjectWebServerActivator {
     /**
      * Checks if the given web server should be activated.
      * @param project given project
-     * @param scopeName the name of a scope (aka web app name)
+     * @param scope reference to a scope (aka web app)
      * @param serverName the name of an installed web server (aka web app name)
      * @param forceActivation a flag as indicator if an already activated (none empty) web server should be replaced
-     * @return false if the new active web server is already the current web server or there is an active web server but the force flag is not set
+     * @return false if the new active web server is already the current web server, the scope is 'LIVE' or there is an active web server but the force flag is not set
      */
-    private boolean shouldActivateWebServer(Project project, String scopeName, String serverName, boolean forceActivation) {
-        String activeWebServer = project.getActiveWebServer(scopeName);
+    private boolean shouldActivateWebServer(Project project, WebAppIdentifier scope, String serverName, boolean forceActivation) {
+        final boolean isLiveScope = scope.getScope().equals(WebEnvironment.WebScope.LIVE);
+        if (isLiveScope) {
+            LOGGER.warn("It is not possible to set the active web server for scope 'LIVE'. Process will continue ignoring this scope.");
+            return false;
+        }
+        String scopeIdName = scope.createWebAppId(project).toString();
+        String activeWebServer = project.getActiveWebServer(scope.getScope().name());
         if (activeWebServer == null || activeWebServer.isEmpty()) {
-            LOGGER.info("Could not find an activated web server for scope '{}'.", scopeName);
+            LOGGER.info("Could not find an activated web server for scope with id '{}'.", scopeIdName);
             return true;
         }
         if (Objects.equals(activeWebServer, serverName)) {
-            LOGGER.info("'{}' is already the activated web server for scope '{}'.", activeWebServer, scopeName);
+            LOGGER.info("'{}' is already the activated web server for scope wit id '{}'.", activeWebServer, scopeIdName);
             return false;
         }
         if (!forceActivation) {
             LOGGER.info(
-                "'{}' already has an activated web server for scope '{}'. "
+                "'{}' already has an activated web server for scope with id '{}'. "
                 + "Enable 'force activation' flag to overwrite the currently active web server.",
-                project.getName(), scopeName);
+                project.getName(), scopeIdName);
             return false;
         }
         return true;
@@ -191,7 +198,7 @@ public class ProjectWebServerActivator {
             LOGGER.info("Set '{}' as new active web server.", activeWebServer);
         } catch (LockException e) {
             LOGGER.error("Cannot lock and save project!", e);
-            throw new ExecutionException(activeWebServer + " could not be set as active web server for scope '" + scopeName + "'.");
+            throw new ExecutionException(activeWebServer + " could not be set as active web server for scope with id'" + scopeName + "'.");
         } finally {
             LOGGER.debug("Unlocking project");
             project.unlock();
@@ -243,11 +250,11 @@ public class ProjectWebServerActivator {
             // In this case, there is nothing to undeploy, so the result is always successful
             return true;
         }
+        WebAppId webAppId = scope.createWebAppId(project);
         try {
-            WebAppId webAppId = scope.createWebAppId(project);
             final boolean successIndicator = moduleAdminAgent.undeployWebApp(webAppId);
             if (!successIndicator) {
-                LOGGER.error("Scope '{}' could not be undeployed from server", scope.getScope().name());
+                LOGGER.error("Scope with id '{}' could not be undeployed from server", webAppId.toString());
                 return false;
             }
         } catch (SecurityException e) {
@@ -255,6 +262,14 @@ public class ProjectWebServerActivator {
                 LOGGER.error("You need to have server admin rights.", e);
             } else {
                 LOGGER.error("You need to have project admin rights for project '{}'", project.getName(), e);
+            }
+            return false;
+        }
+        catch (IllegalArgumentException e) {
+            if (scope.isGlobal()) {
+                LOGGER.error(webAppId.toString() + " could not be undeployed. Make sure the defined global web app id exists!", e);
+            } else {
+                LOGGER.error(scope.getScope().name() + " could not be undeployed", e);
             }
             return false;
         }
